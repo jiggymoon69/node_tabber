@@ -16,11 +16,11 @@ from bpy.props import (
 
 
 def take_fifth(elem):
-    return elem[4]
+    return elem[2]
 
 def write_score(category, enum_items):
 
-    print("Received " + str(enum_items))
+    #print("Received " + str(enum_items))
 
     if (category == "S"):
         category = "shader.json"
@@ -34,27 +34,27 @@ def write_score(category, enum_items):
     if not os.path.exists(path):
         content = {}
         content[enum_items]={'tally': 1}
-        print("Content new: ")
-        print(content)
+        #print("Content new: ")
+        #print(content)
         with open(path, "w") as f:
             json.dump(content, f)
 
-        print ("Created :" + path)
+        print ("Nodetabber created :" + path)
     else:
         with open(path, "r") as f:
             content = json.load(f)
-        print("Content read: ")
-        print(content)
+        #print("Content read: ")
+        #print(content)
         if enum_items in content:
-            print("Match!")
+            #print("Match!")
             content[enum_items]['tally'] += 1
         else:
-            print("New Node!")
+            #print("New Node!")
             content[enum_items]={'tally': 1}
 
         with open(path, "w") as f:
             json.dump(content, f)
-        print ("Updated :" + path)
+        #print ("Updated :" + path)
 
     return
 
@@ -113,6 +113,7 @@ class NodeAddTabOperator:
         if node_type is None:
             node_type = self.type
 
+        #print("Node Type: " + str(node_type))
         # select only the new node
         for n in tree.nodes:
             n.select = False
@@ -178,7 +179,7 @@ class NODE_OT_add_tabber_search(NodeAddTabOperator, bpy.types.Operator):
     # Create an enum list from node items
     def node_enum_items(self, context):
         enum_items = NODE_OT_add_tabber_search._enum_item_hack
-        print("Area: " + str(context.space_data.tree_type))
+        #print("Area: " + str(context.space_data.tree_type))
 
         enum_items.clear()
         
@@ -213,24 +214,25 @@ class NODE_OT_add_tabber_search(NodeAddTabOperator, bpy.types.Operator):
                 match = item.label+" ("+short+")"
                 if match in content:
                     tally = content[match]['tally']
+                potato = [str(index), tally]
 
                 enum_items.append(
                     (str(index),
                      item.label+" ("+short+")",
-                     '',
+                     str(tally),
                      index,
                      ))
 
-        #write_score(cat, enum_items)
-        #tmp = sorted(enum_items, key=take_fifth, reverse=True)
-        return enum_items
-        #print(tmp)
-        #return tmp
+
+        #print (enum_items[0])
+        tmp = sorted(enum_items, key=take_fifth, reverse=True)
+        return tmp
+        #return enum_items
+
 
     # Look up the item based on index
     def find_node_item(self, context):
         node_item = int(self.node_item)
-        print("Node Item = " + str(node_item))
 
         for index, item in enumerate(nodeitems_utils.node_items_iter(context)):
             if index == node_item:
@@ -247,13 +249,12 @@ class NODE_OT_add_tabber_search(NodeAddTabOperator, bpy.types.Operator):
     def execute(self, context):
         item = self.find_node_item(context)
 
-        #print(self._enum_item_hack)
-        #print(self.node_item)
-        #print(self._enum_item_hack[int(self.node_item)][1])
-        #print(item.nodetype[0])
-
         #Add to tally
         write_score(item.nodetype[0], self._enum_item_hack[int(self.node_item)][1])
+        #print ("item.nodetype[0]")
+        #print (item.nodetype[0])
+        #print (self._enum_item_hack[int(self.node_item)][2])
+        #print ("End list")
 
 
 
@@ -266,6 +267,7 @@ class NODE_OT_add_tabber_search(NodeAddTabOperator, bpy.types.Operator):
                 ops = self.settings.add()
                 ops.name = setting[0]
                 ops.value = setting[1]
+
 
             self.create_node(context, item.nodetype)
 
@@ -292,7 +294,7 @@ def register():
     bpy.utils.register_class(NodeTabSetting)
     bpy.utils.register_class(NODE_OT_add_tabber_search)
 
-    print("Registered Node Tabber")
+    #print("Registered Node Tabber")
     # handle the keymap
     wm = bpy.context.window_manager
     kc = wm.keyconfigs.addon
