@@ -20,18 +20,61 @@
 bl_info = {
     "name": "Node Tabber",
     "author": "Richard Lyons <info@rixiefx.com>",
-    "version": (0, 1, 2),
+    "version": (0, 1, 3),
     "blender": (2, 83, 0),
     "description": "Allows quick smart searching of node types.",
     "category": "Node",
 }
 
 import bpy
+from bpy.types import (
+    AddonPreferences,
+)
+from bpy.props import (
+    BoolProperty,
+    IntProperty,
+)
 from . import operators
+
+
+
+class node_tabberPreferences(AddonPreferences):
+    # This must match the addon name, use '__package__'
+    # when defining this in a submodule of a python package.
+
+    bl_idname = __name__
+
+    tally: BoolProperty(
+        name="Enable tally count",
+        default=True,
+        description="Enables Node Tabber to keep a tally of most used nodes, and populate popup accordingly.",
+    )
+    tally_weight: IntProperty(
+        name="Tally Weight",
+        default = 12,
+        description="Maximum number of tallies for each node selected. Affects the \"weighting\" of the order of tallied results in the node list."
+    )
+
+    def draw(self, context):
+        layout = self.layout
+
+        box = layout.box()
+        row1 = box.row()
+        row2 = box.row()
+        row1.prop(self, "tally")
+        row1.operator('node.reset_tally',
+                    text = 'Reset Tally')
+        row1.prop(self, "tally_weight")
+
+        row2.label(text="NOTE: CTRL + TAB : Performs \"Edit Group\" functionality.")
+
+
 
 def register():
     operators.register()
+    bpy.utils.register_class(node_tabberPreferences)
 
 def unregister():
     operators.unregister()
+    bpy.utils.unregister_class(node_tabberPreferences)
 

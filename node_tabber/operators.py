@@ -16,9 +16,12 @@ from bpy.props import (
 
 
 def take_fifth(elem):
-    return elem[2]
+    return int(elem[2])
 
 def write_score(category, enum_items):
+
+    addon = bpy.context.preferences.addons['node_tabber']
+    prefs = addon.preferences
 
     #print("Received " + str(enum_items))
 
@@ -47,7 +50,8 @@ def write_score(category, enum_items):
         #print(content)
         if enum_items in content:
             #print("Match!")
-            content[enum_items]['tally'] += 1
+            if (content[enum_items]['tally'] < prefs.tally_weight):
+                content[enum_items]['tally'] += 1
         else:
             #print("New Node!")
             content[enum_items]={'tally': 1}
@@ -149,6 +153,7 @@ class NodeAddTabOperator:
     def execute(self, context):
         if self.properties.is_property_set("type"):
             self.create_node(context)
+            print("Added node in default execute")
             return {'FINISHED'}
         else:
             return {'CANCELLED'}
@@ -179,11 +184,8 @@ class NODE_OT_add_tabber_search(NodeAddTabOperator, bpy.types.Operator):
     # Create an enum list from node items
     def node_enum_items(self, context):
         enum_items = NODE_OT_add_tabber_search._enum_item_hack
-        #print("Area: " + str(context.space_data.tree_type))
 
         enum_items.clear()
-        
-
         category = context.space_data.tree_type[0]
 
         if (category == "S"):
@@ -201,10 +203,8 @@ class NODE_OT_add_tabber_search(NodeAddTabOperator, bpy.types.Operator):
                 content = json.load(f)
 
 
-
         for index, item in enumerate(nodeitems_utils.node_items_iter(context)):
             if isinstance(item, nodeitems_utils.NodeItem):
-
 
                 short = ''
                 tally = 0
@@ -217,26 +217,51 @@ class NODE_OT_add_tabber_search(NodeAddTabOperator, bpy.types.Operator):
                 potato = [str(index), tally]
 
                 enum_items.append(
-                    (str(index),
+                    (str(index) + " 0 0",
                      item.label+" ("+short+")",
                      str(tally),
                      index,
                      ))
 
+                #temp test 
+                if item.label == "Math":
+                    #print("Found math node at index " + str(index))
+                    enum_items.append(
+                    (str(index) + " M SUBTRACT",
+                     "Subtract (S)",
+                     str(tally),
+                     index+1,
+                     ))
 
         #print (enum_items[0])
-        tmp = sorted(enum_items, key=take_fifth, reverse=True)
+        addon = bpy.context.preferences.addons['node_tabber']
+        prefs = addon.preferences
+
+        if prefs.tally:
+            tmp = enum_items
+            #tmp.sort(key = lambda tmp: int(tmp[2]), reverse = True)
+            tmp = sorted(enum_items, key=take_fifth, reverse=True)
+            print("\n\n" + str(tmp) + "\n\n")
+        else:
+            tmp = enum_items
         return tmp
         #return enum_items
 
 
     # Look up the item based on index
     def find_node_item(self, context):
-        node_item = int(self.node_item)
+        tmp = int(self.node_item.split()[0])
+        print("tmp : " + str(self.node_item.split()))
+        #node_item = int(self.node_item)
+        node_item = tmp
+        extra = [self.node_item.split()[1], self.node_item.split()[2]]
+        print ("First extra :" + str(extra))
+        
 
         for index, item in enumerate(nodeitems_utils.node_items_iter(context)):
             if index == node_item:
-                return item
+                print ("Item : " + str(item))
+                return [item, extra]
         return None
 
     node_item: EnumProperty(
@@ -247,16 +272,10 @@ class NODE_OT_add_tabber_search(NodeAddTabOperator, bpy.types.Operator):
     
 
     def execute(self, context):
-        item = self.find_node_item(context)
-
+        item = self.find_node_item(context)[0]
+        extra = self.find_node_item(context)[1]
         #Add to tally
-        write_score(item.nodetype[0], self._enum_item_hack[int(self.node_item)][1])
-        #print ("item.nodetype[0]")
-        #print (item.nodetype[0])
-        #print (self._enum_item_hack[int(self.node_item)][2])
-        #print ("End list")
-
-
+        #write_score(item.nodetype[0], self._enum_item_hack[int(self.node_item)][1])
 
         # no need to keep
         self._enum_item_hack.clear()
@@ -268,8 +287,26 @@ class NODE_OT_add_tabber_search(NodeAddTabOperator, bpy.types.Operator):
                 ops.name = setting[0]
                 ops.value = setting[1]
 
-
             self.create_node(context, item.nodetype)
+            #print("Added node in node tabber")
+            
+            print(str(item.nodetype))
+            print("extra 0: " + str(extra[0]))
+            print("extra 1: " + str(extra[1]))
+            # print ("Hack0 : " + str(self._enum_item_hack[int(self.node_item)][0]))
+            # print ("Hack1 : " + str(self._enum_item_hack[int(self.node_item)][1]))
+            # print ("Hack2 : " + str(self._enum_item_hack[int(self.node_item)][2]))
+            # print ("Hack3 : " + str(self._enum_item_hack[int(self.node_item)][3]))
+            # print ("Hack4 : " + str(self._enum_item_hack[int(self.node_item)][4]))
+
+            if (extra[0] == "M"):
+                print("Math node to subtract")
+                space = context.space_data
+                node_tree = space.node_tree
+                node_active = context.active_node
+                node_selected = context.selected_nodes
+
+                node_active.operation = "SUBTRACT"
 
             if self.use_transform:
                 bpy.ops.node.translate_attach_remove_on_cancel(
@@ -285,6 +322,30 @@ class NODE_OT_add_tabber_search(NodeAddTabOperator, bpy.types.Operator):
         context.window_manager.invoke_search_popup(self)
         return {'CANCELLED'}
 
+class NODE_OT_reset_tally(bpy.types.Operator):
+    '''Reset the tally count'''
+    bl_idname = "node.reset_tally"
+    bl_label = "Reset node tally count"
+
+    def execute(self, context):
+        categories = ["shader.json", "compositor.json", "texture.json"]
+        reset = False
+        for cat in categories:
+            path = os.path.dirname(__file__) + "/" + cat
+            if os.path.exists(path):
+                reset = True
+                # delete file
+                os.remove(path)
+                            
+            if reset:
+                info = ("Reset Tallies")
+                self.report({'INFO'}, info)
+            else:
+                info = ("No tallies to reset.")
+                self.report({'INFO'}, info)
+
+
+        return {'FINISHED'}
 
 
 addon_keymaps = []
@@ -293,6 +354,7 @@ def register():
     
     bpy.utils.register_class(NodeTabSetting)
     bpy.utils.register_class(NODE_OT_add_tabber_search)
+    bpy.utils.register_class(NODE_OT_reset_tally)
 
     #print("Registered Node Tabber")
     # handle the keymap
@@ -301,14 +363,17 @@ def register():
     if kc:
         km = wm.keyconfigs.addon.keymaps.new(name='Node Editor', space_type='NODE_EDITOR')
         kmi = km.keymap_items.new("node.add_tabber_search", type = 'TAB', value= 'PRESS')
-        addon_keymaps.append((km, kmi))
+        kmj = km.keymap_items.new("node.group_edit", type = 'TAB', value= 'PRESS', ctrl= True)
+        addon_keymaps.append((km, kmi, kmj))
 
 def unregister():
-    for km, kmi in addon_keymaps:
+    for km, kmi, kmj in addon_keymaps:
         km.keymap_items.remove(kmi)
+        km.keymap_items.remove(kmj)
     addon_keymaps.clear()
 
     bpy.utils.unregister_class(NodeTabSetting)
     bpy.utils.unregister_class(NODE_OT_add_tabber_search)
+    bpy.utils.unregister_class(NODE_OT_reset_tally)
 
 
