@@ -228,9 +228,18 @@ class NODE_OT_add_tabber_search(NodeAddTabOperator, bpy.types.Operator):
                     #print("Found math node at index " + str(index))
                     enum_items.append(
                     (str(index) + " M SUBTRACT",
-                     "Subtract (S)",
+                     "Subtract (S) MATH",
                      str(tally),
                      index+1,
+                     ))
+
+                if item.label == "Vector Math":
+                    #print("Found math node at index " + str(index))
+                    enum_items.append(
+                    (str(index) + " VM SUBTRACT",
+                     "Subtract (S) VECTOR MATH",
+                     str(tally),
+                     index+2,
                      ))
 
         #print (enum_items[0])
@@ -241,7 +250,7 @@ class NODE_OT_add_tabber_search(NodeAddTabOperator, bpy.types.Operator):
             tmp = enum_items
             #tmp.sort(key = lambda tmp: int(tmp[2]), reverse = True)
             tmp = sorted(enum_items, key=take_fifth, reverse=True)
-            print("\n\n" + str(tmp) + "\n\n")
+           # print("\n\n" + str(tmp) + "\n\n")
         else:
             tmp = enum_items
         return tmp
@@ -260,7 +269,6 @@ class NODE_OT_add_tabber_search(NodeAddTabOperator, bpy.types.Operator):
 
         for index, item in enumerate(nodeitems_utils.node_items_iter(context)):
             if index == node_item:
-                print ("Item : " + str(item))
                 return [item, extra]
         return None
 
@@ -277,6 +285,13 @@ class NODE_OT_add_tabber_search(NodeAddTabOperator, bpy.types.Operator):
         #Add to tally
         #write_score(item.nodetype[0], self._enum_item_hack[int(self.node_item)][1])
 
+        print ("Writing : ")
+       # print ("Hack0 : " + str(self._enum_item_hack)[])
+        print ("Hack")
+        print (self.node_item)
+        print (self._enum_item_hack[int(self.node_item[0]) -0][1])
+        #print (item.nodetype[0])
+
         # no need to keep
         self._enum_item_hack.clear()
 
@@ -291,22 +306,28 @@ class NODE_OT_add_tabber_search(NodeAddTabOperator, bpy.types.Operator):
             #print("Added node in node tabber")
             
             print(str(item.nodetype))
+            #print(str(item.nodename))
             print("extra 0: " + str(extra[0]))
             print("extra 1: " + str(extra[1]))
-            # print ("Hack0 : " + str(self._enum_item_hack[int(self.node_item)][0]))
-            # print ("Hack1 : " + str(self._enum_item_hack[int(self.node_item)][1]))
-            # print ("Hack2 : " + str(self._enum_item_hack[int(self.node_item)][2]))
+
+            
+
+            #print ("Hack0 : " + str(self._enum_item_hack[int(self.node_item)][0]))
+            #print ("Hack1 : " + str(self._enum_item_hack[int(self.node_item)][1]))
+            #print ("Hack2 : " + str(self._enum_item_hack[int(self.node_item)][2]))
             # print ("Hack3 : " + str(self._enum_item_hack[int(self.node_item)][3]))
             # print ("Hack4 : " + str(self._enum_item_hack[int(self.node_item)][4]))
 
-            if (extra[0] == "M"):
-                print("Math node to subtract")
-                space = context.space_data
-                node_tree = space.node_tree
-                node_active = context.active_node
-                node_selected = context.selected_nodes
+            space = context.space_data
+            node_tree = space.node_tree
+            node_active = context.active_node
+            node_selected = context.selected_nodes
 
+            if (extra[0] == "M"):
                 node_active.operation = "SUBTRACT"
+
+            if (extra[0] == "VM"):
+                node_active.operation = extra[1]
 
             if self.use_transform:
                 bpy.ops.node.translate_attach_remove_on_cancel(
