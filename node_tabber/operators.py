@@ -2,6 +2,7 @@ import bpy
 import json
 import os
 import nodeitems_utils
+from . import nt_extras
 from bpy.types import (
     Operator,
     PropertyGroup,
@@ -74,105 +75,7 @@ class NodeTabSetting(PropertyGroup):
 
 
 
-# Base class for node 'Add' operators
-class NodeAddTabOperator:
-
-    type: StringProperty(
-        name="Node Type",
-        description="Node type",
-    )
-    use_transform: BoolProperty(
-        name="Use Transform",
-        description="Start transform operator after inserting the node",
-        default=True,
-    )
-    settings: CollectionProperty(
-        name="Settings",
-        description="Settings to be applied on the newly created node",
-        type=NodeTabSetting,
-        options={'SKIP_SAVE'},
-    )
-
-    @staticmethod
-    def store_mouse_cursor(context, event):
-        space = context.space_data
-        tree = space.edit_tree
-
-        # convert mouse position to the View2D for later node placement
-        if context.region.type == 'WINDOW':
-            # convert mouse position to the View2D for later node placement
-            space.cursor_location_from_region(
-                event.mouse_region_x, event.mouse_region_y)
-        else:
-            space.cursor_location = tree.view_center
-
-    # XXX explicit node_type argument is usually not necessary,
-    # but required to make search operator work:
-    # add_search has to override the 'type' property
-    # since it's hardcoded in bpy_operator_wrap.c ...
-    def create_node(self, context, node_type=None):
-        space = context.space_data
-        tree = space.edit_tree
-
-        if node_type is None:
-            node_type = self.type
-
-        #print("Node Type: " + str(node_type))
-        # select only the new node
-        for n in tree.nodes:
-            n.select = False
-
-        node = tree.nodes.new(type=node_type)
-
-        for setting in self.settings:
-            # XXX catch exceptions here?
-            value = eval(setting.value)
-
-            try:
-                setattr(node, setting.name, value)
-            except AttributeError as e:
-                self.report(
-                    {'ERROR_INVALID_INPUT'},
-                    "Node has no attribute " + setting.name)
-                print(str(e))
-                # Continue despite invalid attribute
-
-        node.select = True
-        tree.nodes.active = node
-        node.location = space.cursor_location
-        return node
-
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        # needs active node editor and a tree to add nodes to
-        return ((space.type == 'NODE_EDITOR') and
-                space.edit_tree and not space.edit_tree.library)
-
-    # Default execute simply adds a node
-    def execute(self, context):
-        if self.properties.is_property_set("type"):
-            self.create_node(context)
-            print("Added node in default execute")
-            return {'FINISHED'}
-        else:
-            return {'CANCELLED'}
-
-    # Default invoke stores the mouse position to place the node correctly
-    # and optionally invokes the transform operator
-    def invoke(self, context, event):
-        self.store_mouse_cursor(context, event)
-        result = self.execute(context)
-
-        if self.use_transform and ('FINISHED' in result):
-            # removes the node again if transform is canceled
-            bpy.ops.node.translate_attach_remove_on_cancel('INVOKE_DEFAULT')
-
-        return result
-
-
-
-class NODE_OT_add_tabber_search(NodeAddTabOperator, bpy.types.Operator):
+class NODE_OT_add_tabber_search(bpy.types.Operator):
     '''Add a node to the active tree using node tabber'''
     bl_idname = "node.add_tabber_search"
     bl_label = "Search and Add Node"
@@ -184,6 +87,8 @@ class NODE_OT_add_tabber_search(NodeAddTabOperator, bpy.types.Operator):
     # Create an enum list from node items
     def node_enum_items(self, context):
         enum_items = NODE_OT_add_tabber_search._enum_item_hack
+
+        #extra_math = [[" M ADD", "Add (A) MATH"], [" M SUBTRACT", "Subtract (S) MATH"], [" M MULTIPLY", "Multiply (M) MATH"], [" M DIVIDE", "Divide (D) MATH"], [" M ABSOLUTE", "Absolute (A) MATH"],  [" M PINGPONG", "Ping-Pong (PP) MATH"]]
 
         enum_items.clear()
         category = context.space_data.tree_type[0]
@@ -214,7 +119,6 @@ class NODE_OT_add_tabber_search(NodeAddTabOperator, bpy.types.Operator):
                 match = item.label+" ("+short+")"
                 if match in content:
                     tally = content[match]['tally']
-                potato = [str(index), tally]
 
                 enum_items.append(
                     (str(index) + " 0 0",
@@ -225,22 +129,23 @@ class NODE_OT_add_tabber_search(NodeAddTabOperator, bpy.types.Operator):
 
                 #temp test 
                 if item.label == "Math":
-                    #print("Found math node at index " + str(index))
-                    enum_items.append(
-                    (str(index) + " M SUBTRACT",
-                     "Subtract (S) MATH",
-                     str(tally),
-                     index+1,
-                     ))
+                    for index2, subname in enumerate(nt_extras.extra_math):
+                        enum_items.append(
+                            (str(index) + subname[0],
+                            subname[1],
+                            str(0),
+                            index+1+index2,
+                        ))
 
-                if item.label == "Vector Math":
-                    #print("Found math node at index " + str(index))
-                    enum_items.append(
-                    (str(index) + " VM SUBTRACT",
-                     "Subtract (S) VECTOR MATH",
-                     str(tally),
-                     index+2,
-                     ))
+
+                # if item.label == "Vector Math":
+                #     #print("Found math node at index " + str(index))
+                #     enum_items.append(
+                #     (str(index) + " VM SUBTRACT",
+                #     "Subtract (S) VECTOR MATH",
+                #     str(0),
+                #     index+3,
+                #     ))
 
         #print (enum_items[0])
         addon = bpy.context.preferences.addons['node_tabber']
@@ -284,13 +189,20 @@ class NODE_OT_add_tabber_search(NodeAddTabOperator, bpy.types.Operator):
         extra = self.find_node_item(context)[1]
         #Add to tally
         #write_score(item.nodetype[0], self._enum_item_hack[int(self.node_item)][1])
+        short = ''
+        words = item.label.split()
+        for word in words:
+            short += word[0]
+        match = item.label+" ("+short+")"
+
+        write_score(item.nodetype[0], match)
 
         print ("Writing : ")
        # print ("Hack0 : " + str(self._enum_item_hack)[])
         print ("Hack")
         print (self.node_item)
         print (self._enum_item_hack[int(self.node_item[0]) -0][1])
-        #print (item.nodetype[0])
+        print (item.label)
 
         # no need to keep
         self._enum_item_hack.clear()
@@ -311,34 +223,45 @@ class NODE_OT_add_tabber_search(NodeAddTabOperator, bpy.types.Operator):
             print("extra 1: " + str(extra[1]))
 
             
-
-            #print ("Hack0 : " + str(self._enum_item_hack[int(self.node_item)][0]))
-            #print ("Hack1 : " + str(self._enum_item_hack[int(self.node_item)][1]))
-            #print ("Hack2 : " + str(self._enum_item_hack[int(self.node_item)][2]))
-            # print ("Hack3 : " + str(self._enum_item_hack[int(self.node_item)][3]))
-            # print ("Hack4 : " + str(self._enum_item_hack[int(self.node_item)][4]))
-
             space = context.space_data
             node_tree = space.node_tree
             node_active = context.active_node
             node_selected = context.selected_nodes
 
             if (extra[0] == "M"):
-                node_active.operation = "SUBTRACT"
+                node_active.operation = extra[1]
 
             if (extra[0] == "VM"):
                 node_active.operation = extra[1]
 
-            if self.use_transform:
-                bpy.ops.node.translate_attach_remove_on_cancel(
-                    'INVOKE_DEFAULT')
+            #if self.use_transform:
+            bpy.ops.node.translate_attach_remove_on_cancel('INVOKE_DEFAULT')
 
             return {'FINISHED'}
         else:
             return {'CANCELLED'}
 
+    def create_node(self, context, node_type=None):
+        space = context.space_data
+        tree = space.edit_tree
+
+        if node_type is None:
+            node_type = self.type
+
+        #print("Node Type: " + str(node_type))
+        # select only the new node
+        for n in tree.nodes:
+            n.select = False
+
+        node = tree.nodes.new(type=node_type)
+
+        node.select = True
+        tree.nodes.active = node
+        node.location = space.cursor_location
+        return node
+
     def invoke(self, context, event):
-        self.store_mouse_cursor(context, event)
+        #self.store_mouse_cursor(context, event)
         # Delayed execution in the search popup
         context.window_manager.invoke_search_popup(self)
         return {'CANCELLED'}
