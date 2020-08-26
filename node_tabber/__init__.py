@@ -55,19 +55,24 @@ class node_tabberPreferences(AddonPreferences):
         default = 12,
         description="Maximum number of tallies for each node selected. Affects the \"weighting\" of the order of tallied results in the node list."
     )
-
+    quick_place: BoolProperty(
+        name="Enable \"Quick Place\"",
+        default=False,
+        description="Allows immediate placement of selected node.",
+    )
     def draw(self, context):
         layout = self.layout
 
         box = layout.box()
         row1 = box.row()
         row2 = box.row()
+        row3 = box.row()
         row1.prop(self, "tally")
         row1.operator('node.reset_tally',
                     text = 'Reset Tally')
         row1.prop(self, "tally_weight")
-
-        row2.label(text="NOTE: CTRL + TAB : Performs \"Edit Group\" functionality.")
+        row2.prop(self, "quick_place")
+        row3.label(text="NOTE: CTRL + TAB : Performs \"Edit Group\" functionality.")
 
 
 

@@ -130,10 +130,13 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
                 #temp test 
                 if item.label == "Math":
                     for index2, subname in enumerate(nt_extras.extra_math):
+                        tally = 0
+                        if subname[1] in content:
+                            tally = content[subname[1]]['tally']
                         enum_items.append(
-                            (str(index) + subname[0],
+                            (str(index) + subname[0] + " " + subname[1],
                             subname[1],
-                            str(0),
+                            str(tally),
                             index+1+index2,
                         ))
 
@@ -153,7 +156,6 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
 
         if prefs.tally:
             tmp = enum_items
-            #tmp.sort(key = lambda tmp: int(tmp[2]), reverse = True)
             tmp = sorted(enum_items, key=take_fifth, reverse=True)
            # print("\n\n" + str(tmp) + "\n\n")
         else:
@@ -166,15 +168,17 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
     def find_node_item(self, context):
         tmp = int(self.node_item.split()[0])
         print("tmp : " + str(self.node_item.split()))
-        #node_item = int(self.node_item)
+
         node_item = tmp
         extra = [self.node_item.split()[1], self.node_item.split()[2]]
         print ("First extra :" + str(extra))
+        print ("Third ? :" + str(self.node_item.split()[3:]))
+        nice_name = ' '.join(self.node_item.split()[3:])
         
 
         for index, item in enumerate(nodeitems_utils.node_items_iter(context)):
             if index == node_item:
-                return [item, extra]
+                return [item, extra, nice_name]
         return None
 
     node_item: EnumProperty(
@@ -185,23 +189,35 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
     
 
     def execute(self, context):
+        addon = bpy.context.preferences.addons['node_tabber']
+        prefs = addon.preferences
+
         item = self.find_node_item(context)[0]
         extra = self.find_node_item(context)[1]
+        nice_name = self.find_node_item(context)[2]
         #Add to tally
         #write_score(item.nodetype[0], self._enum_item_hack[int(self.node_item)][1])
         short = ''
         words = item.label.split()
+        print("Item label : " + str(item.label))
         for word in words:
             short += word[0]
         match = item.label+" ("+short+")"
 
-        write_score(item.nodetype[0], match)
+        print("Checking type : " + str(self.node_item[2]))
 
-        print ("Writing : ")
+        if (self.node_item[2] == "0"):
+            print ("Writing normal node tally")
+            write_score(item.nodetype[0], match)
+        else:
+            print ("Writing sub node tally")
+            write_score(item.nodetype[0], nice_name)
+
+        
        # print ("Hack0 : " + str(self._enum_item_hack)[])
         print ("Hack")
         print (self.node_item)
-        print (self._enum_item_hack[int(self.node_item[0]) -0][1])
+        #print (self._enum_item_hack[int(self.node_item[0]) -0][1])
         print (item.label)
 
         # no need to keep
@@ -234,8 +250,8 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
             if (extra[0] == "VM"):
                 node_active.operation = extra[1]
 
-            #if self.use_transform:
-            bpy.ops.node.translate_attach_remove_on_cancel('INVOKE_DEFAULT')
+            if not prefs.quick_place:
+                bpy.ops.node.translate_attach_remove_on_cancel('INVOKE_DEFAULT')
 
             return {'FINISHED'}
         else:
