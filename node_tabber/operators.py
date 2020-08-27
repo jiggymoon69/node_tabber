@@ -1,6 +1,7 @@
 import bpy
 import json
 import os
+import time
 import nodeitems_utils
 from . import nt_extras
 from bpy.types import (
@@ -16,15 +17,21 @@ from bpy.props import (
 )
 
 
+def nt_debug(msg):
+    addon = bpy.context.preferences.addons['node_tabber']
+    prefs = addon.preferences
+
+    if prefs.nt_debug:
+        print(str(msg))
+    
+    return
+
 def take_fifth(elem):
     return int(elem[2])
 
 def write_score(category, enum_items):
-
     addon = bpy.context.preferences.addons['node_tabber']
     prefs = addon.preferences
-
-    #print("Received " + str(enum_items))
 
     if (category == "S"):
         category = "shader.json"
@@ -38,8 +45,7 @@ def write_score(category, enum_items):
     if not os.path.exists(path):
         content = {}
         content[enum_items]={'tally': 1}
-        #print("Content new: ")
-        #print(content)
+
         with open(path, "w") as f:
             json.dump(content, f)
 
@@ -47,19 +53,15 @@ def write_score(category, enum_items):
     else:
         with open(path, "r") as f:
             content = json.load(f)
-        #print("Content read: ")
-        #print(content)
+
         if enum_items in content:
-            #print("Match!")
             if (content[enum_items]['tally'] < prefs.tally_weight):
                 content[enum_items]['tally'] += 1
         else:
-            #print("New Node!")
             content[enum_items]={'tally': 1}
 
         with open(path, "w") as f:
             json.dump(content, f)
-        #print ("Updated :" + path)
 
     return
 
@@ -86,9 +88,8 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
 
     # Create an enum list from node items
     def node_enum_items(self, context):
+        nt_debug("DEF: node_enum_items")
         enum_items = NODE_OT_add_tabber_search._enum_item_hack
-
-        #extra_math = [[" M ADD", "Add (A) MATH"], [" M SUBTRACT", "Subtract (S) MATH"], [" M MULTIPLY", "Multiply (M) MATH"], [" M DIVIDE", "Divide (D) MATH"], [" M ABSOLUTE", "Absolute (A) MATH"],  [" M PINGPONG", "Ping-Pong (PP) MATH"]]
 
         enum_items.clear()
         category = context.space_data.tree_type[0]
@@ -107,10 +108,14 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
             with open(path, "r") as f:
                 content = json.load(f)
 
+        
+
 
         for index, item in enumerate(nodeitems_utils.node_items_iter(context)):
+            #nt_debug("DEF: node_enum_items")
             if isinstance(item, nodeitems_utils.NodeItem):
 
+                #nt_debug(str(item.label))
                 short = ''
                 tally = 0
                 words = item.label.split()
@@ -129,6 +134,7 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
 
                 #temp test 
                 if item.label == "Math":
+                    nt_debug("Adding math nodes")
                     for index2, subname in enumerate(nt_extras.extra_math):
                         tally = 0
                         if subname[1] in content:
@@ -139,6 +145,7 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
                             str(tally),
                             index+1+index2,
                         ))
+                        #nt_debug("elem: " + str(str(index) + subname[0] + " " + subname[1]))
 
 
                 # if item.label == "Vector Math":
@@ -150,7 +157,6 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
                 #     index+3,
                 #     ))
 
-        #print (enum_items[0])
         addon = bpy.context.preferences.addons['node_tabber']
         prefs = addon.preferences
 
@@ -166,29 +172,28 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
 
     # Look up the item based on index
     def find_node_item(self, context):
+        nt_debug("DEF: find_node_item")
         tmp = int(self.node_item.split()[0])
-        print("tmp : " + str(self.node_item.split()))
+        nt_debug("FIND_NODE_ITEM: Tmp : " + str(self.node_item.split()))
 
         node_item = tmp
         extra = [self.node_item.split()[1], self.node_item.split()[2]]
-        print ("First extra :" + str(extra))
-        print ("Third ? :" + str(self.node_item.split()[3:]))
+        #nt_debug ("First extra :" + str(extra))
+        #nt_debug ("Third ? :" + str(self.node_item.split()[3:]))
         nice_name = ' '.join(self.node_item.split()[3:])
         
 
         for index, item in enumerate(nodeitems_utils.node_items_iter(context)):
+            #nt_debug("DEF: find_node_item")
             if index == node_item:
                 return [item, extra, nice_name]
         return None
 
-    node_item: EnumProperty(
-        name="Node Type",
-        description="Node type",
-        items=node_enum_items,
-    )
     
 
     def execute(self, context):
+        nt_debug("DEF: execute")
+        startTime = time.perf_counter()
         addon = bpy.context.preferences.addons['node_tabber']
         prefs = addon.preferences
 
@@ -199,26 +204,26 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
         #write_score(item.nodetype[0], self._enum_item_hack[int(self.node_item)][1])
         short = ''
         words = item.label.split()
-        print("Item label : " + str(item.label))
+        nt_debug("EXECUTE: Item label : " + str(item.label))
         for word in words:
             short += word[0]
         match = item.label+" ("+short+")"
 
-        print("Checking type : " + str(self.node_item[2]))
+        nt_debug("Checking type : " + str(self.node_item[2]))
 
         if (self.node_item[2] == "0"):
-            print ("Writing normal node tally")
+            nt_debug ("Writing normal node tally")
             write_score(item.nodetype[0], match)
         else:
-            print ("Writing sub node tally")
+            nt_debug ("Writing sub node tally")
             write_score(item.nodetype[0], nice_name)
 
         
        # print ("Hack0 : " + str(self._enum_item_hack)[])
-        print ("Hack")
-        print (self.node_item)
+        nt_debug ("Hack")
+        #print (self.node_item)
         #print (self._enum_item_hack[int(self.node_item[0]) -0][1])
-        print (item.label)
+        #nt_debug(item.label)
 
         # no need to keep
         self._enum_item_hack.clear()
@@ -233,10 +238,10 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
             self.create_node(context, item.nodetype)
             #print("Added node in node tabber")
             
-            print(str(item.nodetype))
+            nt_debug(str(item.nodetype))
             #print(str(item.nodename))
-            print("extra 0: " + str(extra[0]))
-            print("extra 1: " + str(extra[1]))
+            nt_debug("extra 0: " + str(extra[0]))
+            nt_debug("extra 1: " + str(extra[1]))
 
             
             space = context.space_data
@@ -253,11 +258,13 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
             if not prefs.quick_place:
                 bpy.ops.node.translate_attach_remove_on_cancel('INVOKE_DEFAULT')
 
+            print("Time taken: " + str(time.perf_counter() - startTime))
             return {'FINISHED'}
         else:
             return {'CANCELLED'}
 
     def create_node(self, context, node_type=None):
+        nt_debug("DEF: create_node")
         space = context.space_data
         tree = space.edit_tree
 
@@ -281,6 +288,15 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
         # Delayed execution in the search popup
         context.window_manager.invoke_search_popup(self)
         return {'CANCELLED'}
+
+    populate = node_enum_items
+
+    node_item: EnumProperty(
+        name="Node Type",
+        description="Node type",
+        items=populate,
+    )
+
 
 class NODE_OT_reset_tally(bpy.types.Operator):
     '''Reset the tally count'''

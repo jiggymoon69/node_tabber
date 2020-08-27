@@ -52,7 +52,7 @@ class node_tabberPreferences(AddonPreferences):
     )
     tally_weight: IntProperty(
         name="Tally Weight",
-        default = 12,
+        default = 35,
         description="Maximum number of tallies for each node selected. Affects the \"weighting\" of the order of tallied results in the node list."
     )
     quick_place: BoolProperty(
@@ -60,6 +60,13 @@ class node_tabberPreferences(AddonPreferences):
         default=False,
         description="Allows immediate placement of selected node.",
     )
+    nt_debug: BoolProperty(
+        name="Debug Output",
+        default=True,
+        description="Prints Node Tabber debug to console.",
+    )
+
+
     def draw(self, context):
         layout = self.layout
 
@@ -72,6 +79,7 @@ class node_tabberPreferences(AddonPreferences):
                     text = 'Reset Tally')
         row1.prop(self, "tally_weight")
         row2.prop(self, "quick_place")
+        row2.prop(self, "nt_debug")
         row3.label(text="NOTE: CTRL + TAB : Performs \"Edit Group\" functionality.")
 
 
