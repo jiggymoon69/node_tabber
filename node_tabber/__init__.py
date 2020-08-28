@@ -65,6 +65,11 @@ class node_tabberPreferences(AddonPreferences):
         default=True,
         description="Prints Node Tabber debug to console.",
     )
+    sub_search: BoolProperty(
+        name="Enable Sub Searching",
+        default=True,
+        description="Allows searching within node operations. Eg. PP could return Ping-Pong in the Math node.",
+    )
 
 
     def draw(self, context):
@@ -74,13 +79,15 @@ class node_tabberPreferences(AddonPreferences):
         row1 = box.row()
         row2 = box.row()
         row3 = box.row()
+        row4 = box.row()
         row1.prop(self, "tally")
         row1.operator('node.reset_tally',
                     text = 'Reset Tally')
         row1.prop(self, "tally_weight")
         row2.prop(self, "quick_place")
         row2.prop(self, "nt_debug")
-        row3.label(text="NOTE: CTRL + TAB : Performs \"Edit Group\" functionality.")
+        row3.prop(self, "sub_search")
+        row4.label(text="NOTE: CTRL + TAB : Performs \"Edit Group\" functionality.")
 
 
 

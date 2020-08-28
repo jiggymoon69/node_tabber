@@ -12,3 +12,20 @@ extra_math = [[" M ADD", "Add (A) MATH"], [" M SUBTRACT", "Subtract (S) MATH"], 
 [" M COSH", "Hyperbolic Cosine (HC) MATH"], [" M TANH", "Hyperbolic Tangent (HT) MATH"], [" M RADIANS", "To Radians (TR) MATH"], [" M DEGREES", "To Degrees (TD) MATH"],
 ]
 
+extra_vector_math = [[" VM ADD", "Add (A) VEC MATH"], [" VM SUBTRACT", "Subtract (S) VEC MATH"], [" VM MULTIPLY", "Multiply (M) VEC MATH"], [" VM DIVIDE", "Divide (D) VEC MATH"],
+[" VM CROSS_PRODUCT", "Cross Product (CP) VEC MATH"], [" VM PROJECT", "Project (P) VEC MATH"],  [" VM REFLECT", "Reflect (R) VEC MATH"], [" VM DOT_PRODUCT", "Dot Product (DP) VEC MATH"],
+[" VM DISTANCE", "Distance (D) VEC MATH"], [" VM LENGTH", "Length (L) VEC MATH"],  [" VM SCALE", "Scale (S) VEC MATH"], [" VM NORMALIZE", "Normalize (N) VEC MATH"],
+[" VM ABSOLUTE", "Absolute (A) VEC MATH"], [" VM MINIMUM", "Minimum (M) VEC MATH"],
+[" VM MAXIMUM", "Maximum (M) VEC MATH"],
+[" VM FLOOR", "Floor (F) VEC MATH"], [" VM CEIL", "Ceiling (C) VEC MATH"], [" VM FRACT", "Fraction (F) VEC MATH"],
+[" VM MODULO", "Modulo (M) VEC MATH"], [" VM WRAP", "Wrap (W) VEC MATH"], [" VM SNAP", "Snap (S) VEC MATH"],
+[" VM SINE", "Sine (S) VEC MATH"], [" VM COSINE", "Cosine (C) VEC MATH"], [" VM TANGENT", "Tangent (T) VEC MATH"],
+]
+
+extra_color = [[" C VALUE", "Value (V) COLOR"], [" C COLOR", "Color (C) COLOR"], [" C SATURATION", "Saturation (S) COLOR"], [" C HUE", "Hue (H) COLOR"],
+[" C DIVIDE", "Divide (D) COLOR"], [" C SUBTRACT", "Subtract (S) COLOR"],  [" C DIFFERENCE", "Difference (D) COLOR"],
+[" C LINEAR_LIGHT", "Linear Light (LL) COLOR"], [" C SOFT_LIGHT", "Soft Light (SL) COLOR"],  [" C OVERLAY", "Overlay (O) COLOR"],
+[" C ADD", "Add (A) COLOR"], [" C DODGE", "Dodge (D) COLOR"], [" C SCREEN", "Screen (S) COLOR"], [" C LIGHTEN", "Lighten (L) COLOR"],
+[" C BURN", "Burn (B) COLOR"], [" C MULTIPLY", "Multiply (M) COLOR"], [" C DARKEN", "Darken (D) COLOR"], [" C MIX", "Mix (M) COLOR"],
+]
+

@@ -86,10 +86,20 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
 
     _enum_item_hack = []
 
+    def node_enum_items2(self, context):
+        for index, item in enumerate(nodeitems_utils.node_items_iter(context)):
+            if isinstance(item, nodeitems_utils.NodeItem):
+                print(str(index) + " : " + str(item.label))
+
+        return None
+
     # Create an enum list from node items
     def node_enum_items(self, context):
         nt_debug("DEF: node_enum_items")
         enum_items = NODE_OT_add_tabber_search._enum_item_hack
+
+        addon = bpy.context.preferences.addons['node_tabber']
+        prefs = addon.preferences
 
         enum_items.clear()
         category = context.space_data.tree_type[0]
@@ -110,6 +120,7 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
 
         
 
+        index_offset = 0
 
         for index, item in enumerate(nodeitems_utils.node_items_iter(context)):
             #nt_debug("DEF: node_enum_items")
@@ -131,34 +142,61 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
                      str(tally),
                      index,
                      ))
+                index_offset = index
 
-                #temp test 
                 if item.label == "Math":
-                    nt_debug("Adding math nodes")
-                    for index2, subname in enumerate(nt_extras.extra_math):
-                        tally = 0
-                        if subname[1] in content:
-                            tally = content[subname[1]]['tally']
-                        enum_items.append(
-                            (str(index) + subname[0] + " " + subname[1],
-                            subname[1],
-                            str(tally),
-                            index+1+index2,
-                        ))
-                        #nt_debug("elem: " + str(str(index) + subname[0] + " " + subname[1]))
+                    math_index = index
+                if item.label == "Vector Math":
+                    vector_math_index = index
+                if item.label == "MixRGB":
+                    mix_rgb_index = index
+
+        #Add sub node searching if enabled            
+        if prefs.sub_search:
+            if math_index:
+                nt_debug("Adding math nodes")
+                for index2, subname in enumerate(nt_extras.extra_math):
+                    tally = 0
+                    if subname[1] in content:
+                        tally = content[subname[1]]['tally']
+                    enum_items.append(
+                        (str(math_index) + subname[0] + " " + subname[1],
+                        subname[1],
+                        str(tally),
+                        index_offset+1+index2,
+                    ))
+                index_offset += index2
+
+            if vector_math_index:
+                nt_debug("Adding vector math nodes")
+                for index2, subname in enumerate(nt_extras.extra_vector_math):
+                    tally = 0
+                    if subname[1] in content:
+                        tally = content[subname[1]]['tally']
+                    enum_items.append(
+                        (str(vector_math_index) + subname[0] + " " + subname[1],
+                        subname[1],
+                        str(tally),
+                        index_offset+1+index2,
+                    ))
+                index_offset += index2
+
+            if mix_rgb_index:
+                nt_debug("Adding mix rgb nodes")
+                for index2, subname in enumerate(nt_extras.extra_color):
+                    tally = 0
+                    if subname[1] in content:
+                        tally = content[subname[1]]['tally']
+                    enum_items.append(
+                        (str(mix_rgb_index) + subname[0] + " " + subname[1],
+                        subname[1],
+                        str(tally),
+                        index_offset+1+index2,
+                    ))
+                index_offset += index2
 
 
-                # if item.label == "Vector Math":
-                #     #print("Found math node at index " + str(index))
-                #     enum_items.append(
-                #     (str(index) + " VM SUBTRACT",
-                #     "Subtract (S) VECTOR MATH",
-                #     str(0),
-                #     index+3,
-                #     ))
 
-        addon = bpy.context.preferences.addons['node_tabber']
-        prefs = addon.preferences
 
         if prefs.tally:
             tmp = enum_items
@@ -255,10 +293,13 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
             if (extra[0] == "VM"):
                 node_active.operation = extra[1]
 
+            if (extra[0] == "C"):
+                node_active.blend_type = extra[1]
+
             if not prefs.quick_place:
                 bpy.ops.node.translate_attach_remove_on_cancel('INVOKE_DEFAULT')
 
-            print("Time taken: " + str(time.perf_counter() - startTime))
+            nt_debug("Time taken: " + str(time.perf_counter() - startTime))
             return {'FINISHED'}
         else:
             return {'CANCELLED'}
