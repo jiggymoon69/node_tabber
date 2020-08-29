@@ -121,6 +121,9 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
         
 
         index_offset = 0
+        math_index = -1
+        vector_math_index = -1
+        mix_rgb_index = -1
 
         for index, item in enumerate(nodeitems_utils.node_items_iter(context)):
             #nt_debug("DEF: node_enum_items")
@@ -153,7 +156,7 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
 
         #Add sub node searching if enabled            
         if prefs.sub_search:
-            if math_index:
+            if math_index > -1:
                 nt_debug("Adding math nodes")
                 for index2, subname in enumerate(nt_extras.extra_math):
                     tally = 0
@@ -167,7 +170,7 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
                     ))
                 index_offset += index2
 
-            if vector_math_index:
+            if vector_math_index > -1:
                 nt_debug("Adding vector math nodes")
                 for index2, subname in enumerate(nt_extras.extra_vector_math):
                     tally = 0
@@ -181,7 +184,7 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
                     ))
                 index_offset += index2
 
-            if mix_rgb_index:
+            if mix_rgb_index > -1:
                 nt_debug("Adding mix rgb nodes")
                 for index2, subname in enumerate(nt_extras.extra_color):
                     tally = 0
@@ -247,9 +250,10 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
             short += word[0]
         match = item.label+" ("+short+")"
 
-        nt_debug("Checking type : " + str(self.node_item[2]))
+        type = self.node_item.split()[1]
+        nt_debug("Checking type : " + str(type))
 
-        if (self.node_item[2] == "0"):
+        if (type == "0"):
             nt_debug ("Writing normal node tally")
             write_score(item.nodetype[0], match)
         else:

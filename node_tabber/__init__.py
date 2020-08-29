@@ -62,7 +62,7 @@ class node_tabberPreferences(AddonPreferences):
     )
     nt_debug: BoolProperty(
         name="Debug Output",
-        default=True,
+        default=False,
         description="Prints Node Tabber debug to console.",
     )
     sub_search: BoolProperty(
