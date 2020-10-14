@@ -17,7 +17,7 @@ extra_vector_math = [[" VM ADD", "Add (A) VEC MATH"], [" VM SUBTRACT", "Subtract
 [" VM DISTANCE", "Distance (D) VEC MATH"], [" VM LENGTH", "Length (L) VEC MATH"],  [" VM SCALE", "Scale (S) VEC MATH"], [" VM NORMALIZE", "Normalize (N) VEC MATH"],
 [" VM ABSOLUTE", "Absolute (A) VEC MATH"], [" VM MINIMUM", "Minimum (M) VEC MATH"],
 [" VM MAXIMUM", "Maximum (M) VEC MATH"],
-[" VM FLOOR", "Floor (F) VEC MATH"], [" VM CEIL", "Ceiling (C) VEC MATH"], [" VM FRACT", "Fraction (F) VEC MATH"],
+[" VM FLOOR", "Floor (F) VEC MATH"], [" VM CEIL", "Ceiling (C) VEC MATH"], [" VM FRACTION", "Fraction (F) VEC MATH"],
 [" VM MODULO", "Modulo (M) VEC MATH"], [" VM WRAP", "Wrap (W) VEC MATH"], [" VM SNAP", "Snap (S) VEC MATH"],
 [" VM SINE", "Sine (S) VEC MATH"], [" VM COSINE", "Cosine (C) VEC MATH"], [" VM TANGENT", "Tangent (T) VEC MATH"],
 ]

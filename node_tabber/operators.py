@@ -369,30 +369,14 @@ class NODE_OT_reset_tally(bpy.types.Operator):
         return {'FINISHED'}
 
 
-addon_keymaps = []
+#addon_keymaps = []
 
 def register():
-    
     bpy.utils.register_class(NodeTabSetting)
     bpy.utils.register_class(NODE_OT_add_tabber_search)
     bpy.utils.register_class(NODE_OT_reset_tally)
 
-    #print("Registered Node Tabber")
-    # handle the keymap
-    wm = bpy.context.window_manager
-    kc = wm.keyconfigs.addon
-    if kc:
-        km = wm.keyconfigs.addon.keymaps.new(name='Node Editor', space_type='NODE_EDITOR')
-        kmi = km.keymap_items.new("node.add_tabber_search", type = 'TAB', value= 'PRESS')
-        kmj = km.keymap_items.new("node.group_edit", type = 'TAB', value= 'PRESS', ctrl= True)
-        addon_keymaps.append((km, kmi, kmj))
-
 def unregister():
-    for km, kmi, kmj in addon_keymaps:
-        km.keymap_items.remove(kmi)
-        km.keymap_items.remove(kmj)
-    addon_keymaps.clear()
-
     bpy.utils.unregister_class(NodeTabSetting)
     bpy.utils.unregister_class(NODE_OT_add_tabber_search)
     bpy.utils.unregister_class(NODE_OT_reset_tally)
