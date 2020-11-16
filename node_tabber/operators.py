@@ -168,7 +168,7 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
                         str(tally),
                         index_offset+1+index2,
                     ))
-                index_offset += index2
+                index_offset += index2+1
 
             if vector_math_index > -1:
                 nt_debug("Adding vector math nodes")
@@ -182,7 +182,7 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
                         str(tally),
                         index_offset+1+index2,
                     ))
-                index_offset += index2
+                index_offset += index2+1
 
             if mix_rgb_index > -1:
                 nt_debug("Adding mix rgb nodes")
@@ -196,7 +196,7 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
                         str(tally),
                         index_offset+1+index2,
                     ))
-                index_offset += index2
+                index_offset += index2+1
 
 
 
