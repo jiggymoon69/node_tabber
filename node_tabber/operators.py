@@ -3,6 +3,7 @@ import json
 import os
 import time
 import nodeitems_utils
+import pprint
 from . import nt_extras
 from bpy.types import (
     Operator,
@@ -168,7 +169,7 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
                         str(tally),
                         index_offset+1+index2,
                     ))
-                index_offset += index2
+                index_offset += index2 + 1
 
             if vector_math_index > -1:
                 nt_debug("Adding vector math nodes")
@@ -182,7 +183,7 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
                         str(tally),
                         index_offset+1+index2,
                     ))
-                index_offset += index2
+                index_offset += index2 + 1
 
             if mix_rgb_index > -1:
                 nt_debug("Adding mix rgb nodes")
@@ -196,7 +197,7 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
                         str(tally),
                         index_offset+1+index2,
                     ))
-                index_offset += index2
+                index_offset += index2 + 1
 
 
 
@@ -269,15 +270,24 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
 
         # no need to keep
         self._enum_item_hack.clear()
-
+        
+        
         if item:
+            node_tree_type = None
+            if "node_tree" in item.settings :
+                node_tree_type = eval(item.settings["node_tree"])
             # apply settings from the node item
-            for setting in item.settings.items():
-                ops = self.settings.add()
-                ops.name = setting[0]
-                ops.value = setting[1]
-
-            self.create_node(context, item.nodetype)
+            # !!! this was breaking on custom node groups and not sure what it does
+            try:
+                for setting in item.settings.items():
+                    if setting[0] != "node_tree":
+                        ops = self.settings.add()
+                        ops.name = setting[0]
+                        ops.value = setting[1]
+            except AttributeError :
+                print ("An exception occurred")
+            
+            self.create_node(context, item.nodetype, node_tree_type)
             #print("Added node in node tabber")
             
             nt_debug(str(item.nodetype))
@@ -308,7 +318,7 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
         else:
             return {'CANCELLED'}
 
-    def create_node(self, context, node_type=None):
+    def create_node(self, context, node_type=None, node_tree_type=None):
         nt_debug("DEF: create_node")
         space = context.space_data
         tree = space.edit_tree
@@ -322,7 +332,10 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
             n.select = False
 
         node = tree.nodes.new(type=node_type)
-
+        
+        if node_tree_type != None:
+            node.node_tree = node_tree_type
+        
         node.select = True
         tree.nodes.active = node
         node.location = space.cursor_location
