@@ -3,7 +3,6 @@ import json
 import os
 import time
 import nodeitems_utils
-import pprint
 from . import nt_extras
 from bpy.types import (
     Operator,
