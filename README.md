@@ -23,6 +23,14 @@ In the meantime there is a .zip file in the pre-releases of this repo  that you 
 https://github.com/sazaam/node_tabber/releases
 
 
+[Edit] Also in the rush of committing, I almost forgot to give a huge shout out to Olimoth
+https://github.com/olimoth/node_tabber
+who has a fork which fixed some very annoying bugs such as instancing the wrong node (Vector Math Add would call ToDegrees instead, for those of you that remember)
+and who managed to fix the exact issue he had previously reported here :
+https://github.com/jiggymoon69/node_tabber/issues/3
+Thanks so much Olimoth!
+
+
 
 [![IMAGE ALT TEXT](https://user-images.githubusercontent.com/48856925/95994231-54459f00-0e30-11eb-95b2-0fbbf1770121.png)](https://www.youtube.com/watch?v=Dd6lQCX4x3U "Preview 0.1.3")
 
