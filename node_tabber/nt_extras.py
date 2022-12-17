@@ -6,7 +6,7 @@ extra_math = [[" M ADD", "Add (A) MATH"], [" M SUBTRACT", "Subtract (S) MATH"], 
 [" M MAXIMUM", "Maximum (M) MATH"], [" M LESS_THAN", "Less Than (LT) MATH"], [" M GREATER_THAN", "Greater Than (GT) MATH"], [" M SIGN", "Sign (S) MATH"],
 [" M COMPARE", "Compare (C) MATH"], [" M SMOOTH_MIN", "Smooth Minimum (SM) MATH"], [" M SMOOTH_MAX", "Smooth Maximum (SM) MATH"], [" M ROUND", "Round (R) MATH"],
 [" M FLOOR", "Floor (F) MATH"], [" M CEIL", "Ceiling (C) MATH"], [" M TRUNC", "Truncate (T) MATH"], [" M FRACT", "Fraction (F) MATH"],
-[" M MODULO", "Modulo (M) MATH"], [" M WRAP", "Wrap (W) MATH"], [" M SNAP", "Snap (S) MATH"], [" M PINGPONG", "Ping-Pong (PP) MATH"],
+[" M MODULO", "Modulo (M) MATH"], [" M WRAP", "Wrap (W) MATH"], [" M SNAP", "Snap (S) MATH"], [" M PINGPONG", "Ping Pong (PP) MATH"],
 [" M SINE", "Sine (S) MATH"], [" M COSINE", "Cosine (C) MATH"], [" M TANGENT", "Tangent (T) MATH"], [" M ARCSINE", "ArcSine (AS) MATH"],
 [" M ARCCOSINE", "Arccosine (AC) MATH"], [" M ARCTANGENT", "Arctangent (AT) MATH"], [" M ARCTAN2", "Arctan2 (AT) MATH"], [" M SINH", "Hyperbolic Sine (HS) MATH"],
 [" M COSH", "Hyperbolic Cosine (HC) MATH"], [" M TANH", "Hyperbolic Tangent (HT) MATH"], [" M RADIANS", "To Radians (TR) MATH"], [" M DEGREES", "To Degrees (TD) MATH"],
@@ -22,10 +22,11 @@ extra_vector_math = [[" VM ADD", "Add (A) VEC MATH"], [" VM SUBTRACT", "Subtract
 [" VM SINE", "Sine (S) VEC MATH"], [" VM COSINE", "Cosine (C) VEC MATH"], [" VM TANGENT", "Tangent (T) VEC MATH"],
 ]
 
-extra_color = [[" C VALUE", "Value (V) COLOR"], [" C COLOR", "Color (C) COLOR"], [" C SATURATION", "Saturation (S) COLOR"], [" C HUE", "Hue (H) COLOR"],
-[" C DIVIDE", "Divide (D) COLOR"], [" C SUBTRACT", "Subtract (S) COLOR"],  [" C DIFFERENCE", "Difference (D) COLOR"],
-[" C LINEAR_LIGHT", "Linear Light (LL) COLOR"], [" C SOFT_LIGHT", "Soft Light (SL) COLOR"],  [" C OVERLAY", "Overlay (O) COLOR"],
-[" C ADD", "Add (A) COLOR"], [" C DODGE", "Dodge (D) COLOR"], [" C SCREEN", "Screen (S) COLOR"], [" C LIGHTEN", "Lighten (L) COLOR"],
-[" C BURN", "Burn (B) COLOR"], [" C MULTIPLY", "Multiply (M) COLOR"], [" C DARKEN", "Darken (D) COLOR"], [" C MIX", "Mix (M) COLOR"],
+extra_color = [[" CM VALUE", "Value (V) COLOR"], [" CM COLOR", "Color (C) COLOR"], [" CM SATURATION", "Saturation (S) COLOR"], [" CM HUE", "Hue (H) COLOR"],
+[" CM DIVIDE", "Divide (D) COLOR"], [" CM SUBTRACT", "Subtract (S) COLOR"],  [" CM DIFFERENCE", "Difference (D) COLOR"],
+[" CM LINEAR_LIGHT", "Linear Light (LL) COLOR"], [" CM SOFT_LIGHT", "Soft Light (SL) COLOR"],  [" CM OVERLAY", "Overlay (O) COLOR"],
+[" CM ADD", "Add (A) COLOR"], [" CM DODGE", "Dodge (D) COLOR"], [" CM SCREEN", "Screen (S) COLOR"], [" CM LIGHTEN", "Lighten (L) COLOR"],
+[" CM BURN", "Burn (B) COLOR"], [" CM MULTIPLY", "Multiply (M) COLOR"], [" CM DARKEN", "Darken (D) COLOR"], [" CM MIX", "Mix (M) COLOR"],
+[" CM VECTORUNIFORM", "Mix (M) Vector"], [" CM VECTORNON_UNIFORM", "Mix (M) Vector Non Uniform"]
 ]
 

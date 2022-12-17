@@ -85,14 +85,34 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
     bl_property = "node_item"
 
     _enum_item_hack = []
-
+    
+    
     def node_enum_items2(self, context):
         for index, item in enumerate(nodeitems_utils.node_items_iter(context)):
             if isinstance(item, nodeitems_utils.NodeItem):
                 print(str(index) + " : " + str(item.label))
 
         return None
-
+    
+    def retrieve_geo_nodes(self, context):
+        geonodes_extras = [ "ShaderNodeMapRange", "ShaderNodeMath", "ShaderNodeVectorMath", 
+                            "ShaderNodeValToRGB", "ShaderNodeMix", "ShaderNodeVectorCurve", 
+                            "ShaderNodeRGBCurve", "ShaderNodeFloatCurve", 
+                            "ShaderNodeVectorRotate", "ShaderNodeCombineXYZ", "ShaderNodeSeparateXYZ",
+                            "ShaderNodeClamp", "ShaderNodeValue"]
+    
+        NI = nodeitems_utils.NodeItem
+        geonodelist = (lambda data: [NI(i) for i in dir(data) if ((i.startswith("GeometryNode") or i.startswith("FunctionNode") or i.startswith("ShaderNodeTex")) and i!= "GeometryNode")])(bpy.types)
+        geonodelist += [NI(i) for i in geonodes_extras]
+        groups = [NI(nodetype = "GeometryNodeGroup",  label=g.name, settings={"node_tree": g}) for g in list(bpy.data.node_groups) if g.type == "GEOMETRY" and g.name != bpy.context.space_data.edit_tree.name]
+        
+        geonodelist += groups
+        #geonodelist += [NI(nodetype = "GeometryNodeGroup",  label="TestNodeGroup", settings={tuple(["node_tree", "TestNodeGroup"])})] #settings={}
+        return (y for y in geonodelist)
+    
+    def ensure_nodes(self, context):
+        return nodeitems_utils.node_items_iter(context) if context.space_data.edit_tree.type != "GEOMETRY" else NODE_OT_add_tabber_search.retrieve_geo_nodes(self, context)
+    
     # Create an enum list from node items
     def node_enum_items(self, context):
         nt_debug("DEF: node_enum_items")
@@ -124,12 +144,14 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
         math_index = -1
         vector_math_index = -1
         mix_rgb_index = -1
-
-        for index, item in enumerate(nodeitems_utils.node_items_iter(context)):
+        
+        
+        node_items = NODE_OT_add_tabber_search.ensure_nodes(self, context)
+        
+        for index, item in enumerate(node_items):
             #nt_debug("DEF: node_enum_items")
             if isinstance(item, nodeitems_utils.NodeItem):
-
-                #nt_debug(str(item.label))
+                
                 short = ''
                 tally = 0
                 words = item.label.split()
@@ -138,7 +160,7 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
                 match = item.label+" ("+short+")"
                 if match in content:
                     tally = content[match]['tally']
-
+                
                 enum_items.append(
                     (str(index) + " 0 0",
                      item.label+" ("+short+")",
@@ -146,14 +168,16 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
                      index,
                      ))
                 index_offset = index
-
+                
+                
+                
                 if item.label == "Math":
                     math_index = index
                 if item.label == "Vector Math":
                     vector_math_index = index
-                if item.label == "MixRGB":
+                if item.label == "Mix":
                     mix_rgb_index = index
-
+            
         #Add sub node searching if enabled            
         if prefs.sub_search:
             if math_index > -1:
@@ -168,10 +192,9 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
                         str(tally),
                         index_offset+1+index2,
                     ))
-                index_offset += index2
+                index_offset += index2 + 1
 
             if vector_math_index > -1:
-                nt_debug("Adding vector math nodes")
                 for index2, subname in enumerate(nt_extras.extra_vector_math):
                     tally = 0
                     if subname[1] in content:
@@ -182,10 +205,10 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
                         str(tally),
                         index_offset+1+index2,
                     ))
-                index_offset += index2
+                index_offset += index2 + 1
 
             if mix_rgb_index > -1:
-                nt_debug("Adding mix rgb nodes")
+                
                 for index2, subname in enumerate(nt_extras.extra_color):
                     tally = 0
                     if subname[1] in content:
@@ -196,7 +219,7 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
                         str(tally),
                         index_offset+1+index2,
                     ))
-                index_offset += index2
+                index_offset += index2 + 1
 
 
 
@@ -216,15 +239,17 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
         nt_debug("DEF: find_node_item")
         tmp = int(self.node_item.split()[0])
         nt_debug("FIND_NODE_ITEM: Tmp : " + str(self.node_item.split()))
-
+        
         node_item = tmp
         extra = [self.node_item.split()[1], self.node_item.split()[2]]
         #nt_debug ("First extra :" + str(extra))
         #nt_debug ("Third ? :" + str(self.node_item.split()[3:]))
         nice_name = ' '.join(self.node_item.split()[3:])
         
-
-        for index, item in enumerate(nodeitems_utils.node_items_iter(context)):
+        
+        node_items = NODE_OT_add_tabber_search.ensure_nodes(self, context)
+        
+        for index, item in enumerate(node_items):
             #nt_debug("DEF: find_node_item")
             if index == node_item:
                 return [item, extra, nice_name]
@@ -237,7 +262,8 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
         startTime = time.perf_counter()
         addon = bpy.context.preferences.addons['node_tabber']
         prefs = addon.preferences
-
+        
+        
         item = self.find_node_item(context)[0]
         extra = self.find_node_item(context)[1]
         nice_name = self.find_node_item(context)[2]
@@ -269,15 +295,25 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
 
         # no need to keep
         self._enum_item_hack.clear()
-
+        
+        
         if item:
+            node_tree_type = None
+            
+            if "node_tree" in item.settings :
+                node_tree_type = item.settings["node_tree"] if item.nodetype == 'GeometryNodeGroup' else eval(item.settings["node_tree"])
             # apply settings from the node item
-            for setting in item.settings.items():
-                ops = self.settings.add()
-                ops.name = setting[0]
-                ops.value = setting[1]
-
-            self.create_node(context, item.nodetype)
+            # !!! this was breaking on custom node groups and not sure what it does
+            try:
+                for setting in item.settings.items():
+                    if setting[0] != "node_tree":
+                        ops = self.settings.add()
+                        ops.name = setting[0]
+                        ops.value = setting[1]
+            except AttributeError as e:
+                print("NodeTabber:: An AttributeError exception occurred: " + e)
+            
+            self.create_node(context, item.nodetype, node_tree_type)
             #print("Added node in node tabber")
             
             nt_debug(str(item.nodetype))
@@ -297,8 +333,13 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
             if (extra[0] == "VM"):
                 node_active.operation = extra[1]
 
-            if (extra[0] == "C"):
-                node_active.blend_type = extra[1]
+            if (extra[0] == "CM"):
+                if(extra[1].startswith("VECTOR")) :
+                    node_active.data_type = "VECTOR"
+                    node_active.factor_mode = str(extra[1]).replace("VECTOR", "")
+                else:
+                    node_active.data_type = "RGBA"
+                    node_active.blend_type = extra[1]
 
             if not prefs.quick_place:
                 bpy.ops.node.translate_attach_remove_on_cancel('INVOKE_DEFAULT')
@@ -308,7 +349,7 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
         else:
             return {'CANCELLED'}
 
-    def create_node(self, context, node_type=None):
+    def create_node(self, context, node_type=None, node_tree_type=None):
         nt_debug("DEF: create_node")
         space = context.space_data
         tree = space.edit_tree
@@ -322,7 +363,10 @@ class NODE_OT_add_tabber_search(bpy.types.Operator):
             n.select = False
 
         node = tree.nodes.new(type=node_type)
-
+        
+        if node_tree_type != None:
+            node.node_tree = node_tree_type
+        
         node.select = True
         tree.nodes.active = node
         node.location = space.cursor_location
